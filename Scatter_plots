@@ -1,0 +1,33 @@
+sns.scatterplot(data=df,
+                x='X_col',              # العمود على محور X
+                y='Y_col',              # العمود على محور Y
+                hue='Category_col',     # لون مختلف لكل فئة
+                style='Category_col',   # شكل مختلف لكل فئة (دائرة، مثلث...)
+                size='Numeric_col',     # حجم النقطة حسب قيمة رقمية
+                sizes=(40, 400),        # نطاق حجم النقاط
+                palette='Set2',         # ألوان جاهزة وجميلة
+                alpha=0.6)              # شفافية النقاط
+
+
+
+sns.regplot(data=df,
+            x='X_col',                 # العمود على محور X
+            y='Y_col',                 # العمود على محور Y
+            scatter_kws={'s': 60, 'alpha': 0.5},   # خصائص النقاط (حجم وشفافية)
+            line_kws={'color': 'red'})            # خصائص خط الانحدار
+
+# ترسم النقاط + خط الانحدار الخطي (Regression Line)
+# لا تدعم التلوين حسب الفئة
+
+
+
+sns.lmplot(data=df,
+           x='X_col',                  # العمود على محور X
+           y='Y_col',                  # العمود على محور Y
+           hue='Category_col',         # لون مختلف لكل فئة
+           markers=['o', '^', 's'],    # شكل مختلف لكل فئة
+           palette='Set2',             # ألوان منسقة
+           scatter_kws={'s': 60, 'alpha': 0.5},   # خصائص النقاط
+           line_kws={'linewidth': 2})            # خصائص خط الانحدار
+
+# ترسم النقاط + خطوط انحدار مختلفة لكل فئة
