@@ -1,0 +1,106 @@
+# 📦 مكتبة دوال ذكية للتحليل الإحصائي
+import pandas as pd
+import numpy as np
+import matplotlib.pyplot as plt
+import seaborn as sns
+from scipy.stats import (
+    ttest_ind, ttest_1samp, ttest_rel,
+    f_oneway, chi2_contingency, shapiro, probplot
+)
+from sklearn.linear_model import LinearRegression, LogisticRegression
+
+# ✅ 1. Independent T-Test
+def t_test_independent_from_df(df, col, group_col, group1_val, group2_val, alpha=0.05):
+    g1 = df[df[group_col] == group1_val][col].dropna()
+    g2 = df[df[group_col] == group2_val][col].dropna()
+    t_stat, p_val = ttest_ind(g1, g2)
+    print(f"Independent T-Test between {group1_val} and {group2_val} on '{col}':")
+    print(f"T = {t_stat:.4f}, P = {p_val:.4f}")
+    print("✅ Significant difference" if p_val < alpha else "❌ No significant difference")
+
+# ✅ 2. One Sample T-Test
+def t_test_one_sample_from_df(df, col, popmean, alpha=0.05):
+    t_stat, p_val = ttest_1samp(df[col].dropna(), popmean)
+    print(f"One Sample T-Test on '{col}' vs population mean {popmean}:")
+    print(f"T = {t_stat:.4f}, P = {p_val:.4f}")
+    print("✅ Mean is significantly different" if p_val < alpha else "❌ No significant difference")
+
+# ✅ 3. Paired T-Test
+def t_test_paired_from_df(df, col_before, col_after, alpha=0.05):
+    before = df[col_before].dropna()
+    after = df[col_after].dropna()
+    t_stat, p_val = ttest_rel(before, after)
+    print(f"Paired T-Test between '{col_before}' and '{col_after}':")
+    print(f"T = {t_stat:.4f}, P = {p_val:.4f}")
+    print("✅ Significant change" if p_val < alpha else "❌ No significant change")
+
+# ✅ 4. ANOVA Test
+def run_anova_from_df(df, col, group_col, alpha=0.05):
+    groups = [g[col].dropna() for _, g in df.groupby(group_col)]
+    stat, p_val = f_oneway(*groups)
+    print(f"ANOVA on '{col}' by '{group_col}':")
+    print(f"F = {stat:.4f}, P = {p_val:.4f}")
+    print("✅ Significant difference between groups" if p_val < alpha else "❌ No significant difference")
+
+# ✅ 5. Chi-Square Test
+def chi_square_from_df(df, col1, col2, alpha=0.05):
+    table = pd.crosstab(df[col1], df[col2])
+    chi2, p, _, _ = chi2_contingency(table)
+    print(f"Chi-Square Test between '{col1}' and '{col2}':")
+    print(f"Chi2 = {chi2:.4f}, P = {p:.4f}")
+    print("✅ Variables are dependent" if p < alpha else "❌ Variables are independent")
+
+# ✅ 6. Correlation Matrix
+def show_correlation_matrix(df):
+    corr = df.corr()
+    print("\nCorrelation Matrix:")
+    print(corr.round(2))
+    plt.figure(figsize=(8, 6))
+    sns.heatmap(corr, annot=True, cmap="coolwarm", fmt=".2f")
+    plt.title("Correlation Matrix")
+    plt.tight_layout()
+    plt.show()
+
+# ✅ 7. Normality Check (Histogram + Q-Q Plot + Shapiro)
+def check_normality(data, alpha=0.05):
+    plt.figure(figsize=(6, 4))
+    sns.histplot(data.dropna(), kde=True, color='skyblue', bins=30)
+    plt.title("Histogram + KDE")
+    plt.tight_layout()
+    plt.show()
+
+    plt.figure(figsize=(6, 4))
+    probplot(data.dropna(), dist="norm", plot=plt)
+    plt.title("Q-Q Plot")
+    plt.tight_layout()
+    plt.show()
+
+    stat, p_val = shapiro(data.dropna())
+    print(f"Shapiro-Wilk Test: P = {p_val:.4f}")
+    print("✅ Normally distributed" if p_val > alpha else "❌ Not normally distributed")
+
+# ✅ 8. Linear Regression Report
+def run_linear_regression_from_df(df, feature_cols, target_col):
+    X = df[feature_cols].dropna()
+    y = df[target_col].dropna()
+    model = LinearRegression()
+    model.fit(X, y)
+    print("\nLinear Regression Results:")
+    print("Intercept:", model.intercept_)
+    print("Coefficients:")
+    for name, coef in zip(feature_cols, model.coef_):
+        print(f"- {name}: {coef:.4f}")
+    return model
+
+# ✅ 9. Logistic Regression Report
+def run_logistic_regression_from_df(df, feature_cols, target_col):
+    X = df[feature_cols].dropna()
+    y = df[target_col].dropna()
+    model = LogisticRegression(max_iter=1000)
+    model.fit(X, y)
+    print("\nLogistic Regression Model Trained.")
+    print("Intercept:", model.intercept_)
+    print("Coefficients:")
+    for name, coef in zip(feature_cols, model.coef_[0]):
+        print(f"- {name}: {coef:.4f}")
+    return model
