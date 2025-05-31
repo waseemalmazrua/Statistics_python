@@ -104,3 +104,44 @@ def run_logistic_regression_from_df(df, feature_cols, target_col):
     for name, coef in zip(feature_cols, model.coef_[0]):
         print(f"- {name}: {coef:.4f}")
     return model
+
+
+
+
+def get_top_correlated_features(df, target_col, top_n=5, plot=False):
+    """
+    تعرض أكثر الميزات ارتباطًا بالمتغير الهدف (target_col) باستخدام Pearson correlation.
+    
+    Parameters:
+    - df: DataFrame كامل
+    - target_col: اسم عمود الهدف (مثال: 'Diabetes')
+    - top_n: عدد الميزات الأعلى ارتباطًا (افتراضي = 5)
+    - plot: إذا True، يرسم بار شارت للميزات الأعلى
+    
+    Returns:
+    - DataFrame يحتوي الميزات + قيمة الارتباط (مرتبة تنازليًا)
+    """
+    import pandas as pd
+    import matplotlib.pyplot as plt
+
+    # التأكد أن الهدف موجود
+    if target_col not in df.columns:
+        raise ValueError(f"'{target_col}' not found in dataframe.")
+
+    # حساب مصفوفة الارتباط
+    corr = df.corr()[target_col].drop(labels=[target_col])
+    corr_df = corr.abs().sort_values(ascending=False).head(top_n)
+
+    print(f"\n🔎 Top {top_n} features most correlated with '{target_col}':\n")
+    print(corr_df)
+
+    if plot:
+        plt.figure(figsize=(8, 4))
+        corr_df.plot(kind='barh', color='teal')
+        plt.gca().invert_yaxis()
+        plt.title(f"Top {top_n} Features Correlated with '{target_col}'")
+        plt.xlabel("Absolute Correlation")
+        plt.tight_layout()
+        plt.show()
+
+    return corr_df
