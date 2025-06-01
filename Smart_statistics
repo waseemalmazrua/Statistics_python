@@ -9,6 +9,52 @@ from scipy.stats import (
 )
 from sklearn.linear_model import LinearRegression, LogisticRegression
 
+=============================================================================
+
+import pandas as pd
+import seaborn as sns
+import matplotlib.pyplot as plt
+from scipy.stats import shapiro, probplot, kurtosis, skew
+
+def descriptive_report(series, alpha=0.05):
+    print("📊 Descriptive Statistics:")
+    print(f"- Count: {series.count()}")
+    print(f"- Mean: {series.mean():.2f}")
+    print(f"- Median: {series.median():.2f}")
+    print(f"- Mode: {series.mode().iloc[0]}")
+    print(f"- Std Dev: {series.std():.2f}")
+    print(f"- Min: {series.min()}")
+    print(f"- Max: {series.max()}")
+    print(f"- Range: {series.max() - series.min()}")
+    print(f"- Skewness: {skew(series):.2f}")
+    print(f"- Kurtosis: {kurtosis(series):.2f}")
+
+    print("\n🧪 Normality Test (Shapiro-Wilk):")
+    stat, p_val = shapiro(series)
+    print(f"  ➤ p-value = {p_val:.4f}")
+    print("  ✅ Data is normally distributed" if p_val > alpha else "  ❌ Data is NOT normally distributed")
+
+    # Plots
+    plt.figure(figsize=(14, 4))
+
+    # Histogram + KDE
+    plt.subplot(1, 2, 1)
+    sns.histplot(series, kde=True, bins=20, color='skyblue')
+    plt.title("Histogram + KDE")
+
+    # Q-Q Plot
+    plt.subplot(1, 2, 2)
+    probplot(series, dist="norm", plot=plt)
+    plt.title("Q-Q Plot")
+
+    plt.tight_layout()
+    plt.show()
+
+
+
+------------------------------------------------------------------------------------------------------
+
+
 # ✅ 1. Independent T-Test
 def t_test_independent_from_df(df, col, group_col, group1_val, group2_val, alpha=0.05):
     g1 = df[df[group_col] == group1_val][col].dropna()
