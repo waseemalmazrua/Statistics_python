@@ -171,12 +171,31 @@ def plot_qq(data, title="Q-Q Plot"):
     plt.title(title)
     plt.tight_layout()
     plt.show()
+--------------------------------------------
+from scipy.stats import shapiro, probplot
+import seaborn as sns
+import matplotlib.pyplot as plt
 
-# ✅ 13. Combined Normality Check (Histogram + QQ + Shapiro)
-def check_normality(data, alpha=0.05):
-    plot_distribution(data, "Histogram + KDE")
-    plot_qq(data, "Q-Q Plot")
-    stat, p_val = normality_test(data)
+def check_normality(series, alpha=0.05):
+    # Histogram + KDE
+    plt.figure(figsize=(14, 4))
+    plt.subplot(1, 2, 1)
+    sns.histplot(series, kde=True, bins=20, color='skyblue')
+    plt.title("Histogram + KDE")
+
+    # Q-Q Plot
+    plt.subplot(1, 2, 2)
+    probplot(series, dist="norm", plot=plt)
+    plt.title("Q-Q Plot")
+    plt.tight_layout()
+    plt.show()
+
+    # Shapiro-Wilk Test
+    stat, p_val = shapiro(series)
     print(f"Shapiro-Wilk Test p-value: {p_val:.4f}")
-    print("✅ Normally distributed" if p_val > alpha else "❌ Not normally distributed")
+    if p_val > alpha:
+        print("✅ Normally distributed")
+    else:
+        print("❌ Not normally distributed")
+)
 
