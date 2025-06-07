@@ -1,0 +1,120 @@
+# إعداد الدوال الكاملة لاختبار T-test الثلاثة مع طباعة + رسم + DataFrame
+
+from scipy.stats import ttest_1samp, ttest_ind, ttest_rel
+import pandas as pd
+import numpy as np
+import matplotlib.pyplot as plt
+
+# تفسير حجم الأثر
+def interpret_cohens_d(d):
+    d = abs(d)
+    if d < 0.2:
+        return "Very small effect"
+    elif d < 0.5:
+        return "Small effect"
+    elif d < 0.8:
+        return "Medium effect"
+    else:
+        return "Large effect"
+
+# إنشاء DataFrame للنتيجة
+def make_result_df(t_stat, p_val, cohens_d, interpretation, alpha):
+    return pd.DataFrame([{
+        'T-Statistic': round(t_stat, 4),
+        'P-Value': round(p_val, 4),
+        "Cohen's d": round(cohens_d, 4),
+        'Effect Size': interpretation,
+        'Significant': p_val < alpha
+    }])
+
+# ✅ One Sample T-Test
+def t_test_one_sample_from_df(df, col, popmean, alpha=0.05):
+    missing = df[col].isna().sum()
+    if missing > 0:
+        print(f"⚠️ Missing values in '{col}': {missing} (not dropped)")
+
+    data = df[col].dropna()
+    t_stat, p_val = ttest_1samp(data, popmean)
+    cohens_d = (np.mean(data) - popmean) / np.std(data, ddof=1)
+    interpretation = interpret_cohens_d(cohens_d)
+
+    print(f"\n📊 One Sample T-Test on '{col}' vs population mean {popmean}:")
+    print(f"T = {t_stat:.4f}, P = {p_val:.4f}")
+    print(f"Cohen's d = {cohens_d:.4f} → {interpretation}")
+    print("✅ Mean is significantly different" if p_val < alpha else "❌ No significant difference")
+
+    plt.figure(figsize=(5,4))
+    plt.boxplot(data, tick_labels=[col])
+    plt.axhline(y=popmean, color='red', linestyle='--', label='Population Mean')
+    plt.title(f"Boxplot of '{col}' vs Population Mean")
+    plt.ylabel(col)
+    plt.legend()
+    plt.grid(True)
+    plt.tight_layout()
+    plt.show()
+
+    return make_result_df(t_stat, p_val, cohens_d, interpretation, alpha)
+
+# ✅ Independent T-Test
+def t_test_independent_from_df(df, col, group_col, group1_val, group2_val, alpha=0.05):
+    n1 = df[df[group_col] == group1_val][col].isna().sum()
+    n2 = df[df[group_col] == group2_val][col].isna().sum()
+    if n1 > 0 or n2 > 0:
+        print(f"⚠️ Missing values → {group1_val}: {n1}, {group2_val}: {n2} (not dropped)")
+
+    g1 = df[df[group_col] == group1_val][col].dropna()
+    g2 = df[df[group_col] == group2_val][col].dropna()
+
+    t_stat, p_val = ttest_ind(g1, g2)
+    pooled_std = np.sqrt(((len(g1)-1)*np.var(g1, ddof=1) + (len(g2)-1)*np.var(g2, ddof=1)) / (len(g1)+len(g2)-2))
+    cohens_d = (np.mean(g1) - np.mean(g2)) / pooled_std
+    interpretation = interpret_cohens_d(cohens_d)
+
+    print(f"\n📊 Independent T-Test between {group1_val} and {group2_val} on '{col}':")
+    print(f"T = {t_stat:.4f}, P = {p_val:.4f}")
+    print(f"Cohen's d = {cohens_d:.4f} → {interpretation}")
+    print("✅ Significant difference" if p_val < alpha else "❌ No significant difference")
+
+    plt.figure(figsize=(6,4))
+    plt.boxplot([g1, g2], tick_labels=[str(group1_val), str(group2_val)])
+    plt.title(f"Boxplot of '{col}' by '{group_col}'")
+    plt.ylabel(col)
+    plt.grid(True)
+    plt.tight_layout()
+    plt.show()
+
+    return make_result_df(t_stat, p_val, cohens_d, interpretation, alpha)
+
+# ✅ Paired T-Test
+def t_test_paired_from_df(df, col_before, col_after, alpha=0.05):
+    missing_before = df[col_before].isna().sum()
+    missing_after = df[col_after].isna().sum()
+    if missing_before > 0 or missing_after > 0:
+        print(f"⚠️ Missing values → {col_before}: {missing_before}, {col_after}: {missing_after} (not dropped)")
+
+    data = df[[col_before, col_after]].dropna()
+    before = data[col_before]
+    after = data[col_after]
+
+    t_stat, p_val = ttest_rel(before, after)
+    cohens_d = (before - after).mean() / (before - after).std(ddof=1)
+    interpretation = interpret_cohens_d(cohens_d)
+
+    print(f"\n📊 Paired T-Test between '{col_before}' and '{col_after}':")
+    print(f"T = {t_stat:.4f}, P = {p_val:.4f}")
+    print(f"Cohen's d = {cohens_d:.4f} → {interpretation}")
+    print("✅ Significant change" if p_val < alpha else "❌ No significant change")
+
+    plt.figure(figsize=(6,4))
+    for i in range(len(before)):
+        plt.plot([1, 2], [before.iloc[i], after.iloc[i]], 'gray', linestyle='--', alpha=0.6)
+    plt.plot([1]*len(before), before, 'bo', label='Before')
+    plt.plot([2]*len(after), after, 'ro', label='After')
+    plt.xticks([1,2], [col_before, col_after])
+    plt.title("Paired Measurements")
+    plt.ylabel("Value")
+    plt.grid(True)
+    plt.tight_layout()
+    plt.show()
+
+    return make_result_df(t_stat, p_val, cohens_d, interpretation, alpha)
