@@ -8,7 +8,7 @@ sns.scatterplot(data=df,
                 palette='Set2',         # ألوان جاهزة وجميلة
                 alpha=0.6)              # شفافية النقاط
 
-
+------------------------------------------------------------------------
 
 sns.regplot(data=df,
             x='X_col',                 # العمود على محور X
@@ -19,7 +19,7 @@ sns.regplot(data=df,
 # ترسم النقاط + خط الانحدار الخطي (Regression Line)
 # لا تدعم التلوين حسب الفئة
 
-
+------------------------------------------------------------------
 
 sns.lmplot(data=df,
            x='X_col',                  # العمود على محور X
@@ -31,3 +31,11 @@ sns.lmplot(data=df,
            line_kws={'linewidth': 2})            # خصائص خط الانحدار
 
 # ترسم النقاط + خطوط انحدار مختلفة لكل فئة
+-----------------------------------------------------------
+
+
+from scipy.stats import pearsonr
+
+r, p_value = pearsonr(df["Years_Diabetic"], df["Age"])
+print(f"r = {r:.2f}, p = {p_value:.4f}")
+
